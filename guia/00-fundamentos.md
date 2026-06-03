@@ -23,11 +23,60 @@ Um Large Language Model é uma rede neural treinada para prever o próximo token
 
 ### Tokens e tokenização
 
-O modelo não processa letras nem palavras inteiras: ele processa **tokens**, pedaços de texto produzidos por um algoritmo como BPE (Byte-Pair Encoding). Em português, "computador" pode ser um único token; "tokenização" pode virar dois ou três. Textos em inglês costumam ser tokenizados com mais eficiência do que em português ou línguas com caracteres especiais. Isso tem impacto prático: o custo de uma chamada à API é medido em tokens, e o limite de contexto também. Uma regra de bolso: 1 token ≈ 0,75 palavras em inglês; em português, espere ~0,6 palavras por token.
+Um token é a unidade básica de texto que um modelo de linguagem (LLM) utiliza para processar e gerar informação. O modelo não processa letras nem palavras inteiras: ele processa **tokens**, pedaços de texto produzidos por um algoritmo como BPE (Byte-Pair Encoding). Em português, "computador" pode ser um único token; "tokenização" pode virar dois ou três. Textos em inglês costumam ser tokenizados com mais eficiência do que em português ou línguas com caracteres especiais. Isso tem impacto prático: o custo de uma chamada à API é medido em tokens, e o limite de contexto também. Uma regra de bolso: 1 token ≈ 0,75 palavras em inglês; em português, espere ~0,6 palavras por token.
+
+Ele não é necessariamente uma palavra inteira. Um token pode ser:
+
+Uma palavra comum inteira (ex: gato)
+Parte de uma palavra (ex: des ou organizado)
+Um único caractere (ex: a, x)
+Um sinal de pontuação ou espaço (ex: ,, ?,  )
+
+#### Por que o modelo não processa palavras inteiras?
+Existem três motivos principais (e muito lógicos) para os modelos usarem tokens em vez de palavras completas:
+
+1. O problema do vocabulário infinito
+Se o modelo tivesse que aprender cada palavra inteira como uma unidade única, o seu "dicionário" (vocabulário) seria gigantesco e impossível de gerenciar.
+
+Ele precisaria de uma entrada para correr, outra para correndo, corri, correremos, corredor, etc.
+
+Ao quebrar as palavras em pedaços (subwords), o modelo precisa apenas aprender o radical corr e os sufixos (er, endo, i). Combinando poucos milhares de blocos, ele consegue formar e entender milhões de palavras.
+
+2. Lidar com palavras novas, erros de digitação e gírias
+Se você digitar uma palavra que o modelo nunca viu antes (ou um erro de digitação como computad0r), e ele só aceitasse palavras inteiras, ele simplesmente travaria ou ignoraria o termo.
+Como ele processa por tokens, ele quebra a palavra desconhecida em pedaços menores que ele já conhece (ex: computad + 0 + r) e consegue inferir o significado pelo contexto.
+
+3. Eficiência Matemática
+Modelos de IA não entendem letras; eles entendem números (vetores). Cada token do vocabulário do modelo corresponde a um número de identificação fixo.
+
+Manter um vocabulário otimizado (geralmente entre 32.000 e 256.000 tokens) permite que o modelo faça os cálculos matemáticos de previsão de forma extremamente rápida. Se o vocabulário contivesse todas as palavras de todas as línguas do mundo, o modelo seria lento demais e exigiria uma memória computacional impraticável.
+
+#### Exemplo Visual
+A frase: "Eu programo em Go."
+
+Para você, são 4 palavras. Para o modelo, a fragmentação pode parecer algo como:
+[Eu] [ program] [o] [ em] [ Go] [.] (6 tokens)
+
+O modelo analisa a probabilidade de qual é o próximo "bloco" (token) que deve vir na sequência com base no que ele já viu antes.
 
 ### Embeddings
 
 Antes de processar texto, o modelo converte cada token num vetor de números — o **embedding**. Tokens semanticamente parecidos ficam próximos nesse espaço vetorial. É por isso que o modelo "sabe" que "carro" e "automóvel" têm significados parecidos sem nunca ter aprendido uma regra explícita. Embeddings também são usados fora do modelo de geração: você pode extraí-los para busca semântica, clustering e retrieval (temas de módulos futuros).
+
+Como a IA "entende" o mundo através disso:
+
+Proximidade Direta: Se você calcular o embedding de "rei" e "rainha", os números serão muito parecidos. O mesmo vale para "computador" e "notebook".
+Relações e Analogias (Álgebra Vetorial): Uma das coisas mais fascinantes dos embeddings é que você pode fazer contas matemáticas com os conceitos. 
+Uma das equações mais famosas da IA é:Embedding("Rei") - Embedding("Homem") + Embedding("Mulher") é approximadamente igual a Embedding("Rainha"), O modelo consegue subtrair o conceito de "gênero masculino" de Rei, somar o "gênero feminino" e o resultado geométrico mais próximo no mapa será a palavra Rainha.
+
+Por que isso mudou o jogo na tecnologia?
+Antes dos embeddings, os sistemas de busca eram baseados em palavras-chave exatas. Se você buscasse por "remédio para dor de cabeça", o sistema não acharia um artigo que contivesse apenas "aspirina para cefaleia", porque as palavras são graficamente diferentes.
+
+Com os embeddings, a busca se torna semântica:
+
+O sistema gera o embedding da sua busca.
+Ele gera o embedding de todos os documentos do banco de dados (usando um Vector Database).
+Ele calcula quais documentos estão geometricamente mais próximos da sua intenção, mesmo que usem palavras completamente diferentes.
 
 ### Prompting: system, user e few-shot
 
